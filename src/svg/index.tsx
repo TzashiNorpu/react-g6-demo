@@ -6,12 +6,19 @@ interface SvgIconProps {
     svgClass?: string; // 自定义类名
 }
 
+function dragStart(e:React.DragEvent,svgName:string) {
+    e.dataTransfer.setData('svgName',JSON.stringify({
+      svgName:svgName
+}))}
+
 const SvgIcon: FC<SvgIconProps> = (props) => {
+
     const {svgName,  svgClass} = props;
+
     return (
-        <i aria-hidden='true'>
-            <svg className={`svg-class ${svgClass}`}>
-                <use xlinkHref={'#icon-' + svgName}  />
+        <i draggable aria-hidden='true'  onDragStart={e=>dragStart(e,svgName)} >
+            <svg className={`svg-class ${svgClass?svgClass:''}`}>
+                <use xlinkHref={'#icon-' + svgName}/>
             </svg>
         </i>
     );

@@ -1,11 +1,12 @@
 import styled from "@emotion/styled";
 import SvgIcon from "../../../svg";
+import React from "react";
 
 export const Stencil = () => {
   return (
   <Container>
     <SvgIcon svgName='wulitu_shujuku' />
-    <SvgIcon svgName='wulitu_yingyongfuwuqi' />
+    <SvgIcon svgName='wulitu_yingyongfuwuqi'/>
   </Container>);
 };
 
@@ -14,3 +15,4 @@ const Container = styled.div`
   align-items: center;
   flex-direction: column;
 `;
+
