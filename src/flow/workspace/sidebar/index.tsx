@@ -1,7 +1,10 @@
 import styled from "@emotion/styled";
 import {Info} from "./info";
 import {Minimap} from "./minimap";
-export const SideBar = () => {
+import {forwardRef} from "react";
+
+
+export const SideBar = forwardRef<HTMLDivElement>((props, ref) => {
   return (
     <>
     <SidebarWrapper>
@@ -9,12 +12,12 @@ export const SideBar = () => {
         <Info/>
       </InfoWrapper>
       <MinimapWraper>
-        <Minimap/>
+        <Minimap ref={ref}/>
       </MinimapWraper>
     </SidebarWrapper>
     </>
   );
-};
+});
 
 
 const SidebarWrapper = styled.div`

@@ -4,25 +4,54 @@ import {Canvas} from "./canvas";
 import {SideBar} from "./sidebar";
 import React, { useEffect } from "react";
 import G6,{ Graph, Item } from "@antv/g6";
+import {Minimap} from "@antv/g6-plugin";
+import {getIconByClass} from "../../svg/iconfont_util";
+
 
 
 export const Workspace = () => {
 
-  const ref = React.useRef(null)
+  const canvasRef = React.useRef(null)
+  const miniMapRef = React.useRef(null)
   let graph :Graph ;
-
+  let minimap: Minimap ;
 
   useEffect(() => {
     if(!graph) {
       // 实例化 Minimap
-      // const minimap = new G6.Minimap()
+      if(miniMapRef.current!=null){
+        minimap = new G6.Minimap({
+          size:[(miniMapRef.current as HTMLDivElement).clientWidth,(miniMapRef.current as HTMLDivElement).clientHeight],
+          container:miniMapRef.current,
+        });
+      }
+      
+      
       // 实例化 Graph
-      if(ref.current!=null){
+      if(canvasRef.current!=null){
+        const grid = new G6.Grid();
+
         graph = new G6.Graph({
-          container: ref.current,
-          width: ref.current.clientWidth,
-          height: ref.current.clientHeight,
-          // plugins: [minimap],
+          container: canvasRef.current,
+          width: (canvasRef.current as HTMLDivElement).clientWidth,
+          height: (canvasRef.current as HTMLDivElement).clientHeight,
+          plugins: [grid,minimap],
+          fitView:true,
+          defaultNode: {
+            type:  'rect',
+            style: {
+              width:  60,
+              height: 30,
+              radius: 4,
+              fill:   '#fff',
+              stroke: '#ccc',
+            },
+            labelCfg: {
+              style: {
+                fontSize: 14,
+              },
+            },
+          },
           modes: {
             default: [
               'drag-canvas',
@@ -34,7 +63,8 @@ export const Workspace = () => {
     }
   }
     
-    graph.render()
+    graph.render();
+   
 
     graph.on('node:mouseenter', evt => {
       if(evt.item!=null)
@@ -59,38 +89,44 @@ export const Workspace = () => {
     
 
     graph.on('drop', evt => {
-
-      const {clientX,clientY,originalEvent: {dataTransfer} } = evt;
-      if (dataTransfer) {
-        const data = dataTransfer.getData('svgName');
+      evt.stopPropagation();
+      const {clientX, clientY,originalEvent} = evt;
+      const e =originalEvent as DragEvent;
+      if (e.dataTransfer) {
+        const data = e.dataTransfer.getData('dataSource');
         if(data){
-          const {svgName} = JSON.parse(data);
+          const {width, height,name,font_class} = JSON.parse(data);
 
-          dataTransfer.clearData();
-
-          const node = graph.addItem('node',{
-            x:clientX,
-            y:clientY,
-            style:{
-              strokeOpacity:0,
-            }
-          });
-
-
-          node.addShape('dom', {
-            attrs: {
-              // DOM's html
-              html: `<svg class="svg-class" aria-hidden="true">
-                      <use xlink:href="#icon-${svgName}"></use>
-                     </svg>`,
+          e.dataTransfer.clearData();
+            
+          const node = graph.addItem('node', {
+            x:     clientX-148,
+            y:     clientY-25,
+            style: {
+              width,
+              height,
+              strokeOpacity: 0.5,
             },
-            // 在 G6 3.3 及之后的版本中，必须指定 name，可以是任意字符串，但需要在同一个自定义元素类型中保持唯一性
-            name: 'dom-shape',
+          }) as Item;
+
+          const group = node.getContainer();
+          
+          const icon=group.addShape('text', {
+            attrs: {
+              fontFamily: 'iconfont',
+              text:       getIconByClass(font_class).unicode,
+              fill:       'black',
+              fontSize:   16, 
+              textAlign: 'center',
+              textBaseline: 'middle',
+            },
+            name,
             draggable: true,
           });
-
-        }
-      }
+          setTimeout(() => {
+            icon.attr({ });
+          },0);
+      }}
     })
 
   }, [])
@@ -102,10 +138,10 @@ export const Workspace = () => {
         <Stencil/>
       </StencilWrapper>
       <CanvasWrapper>
-        <Canvas ref={ref}/>
+        <Canvas ref={canvasRef}/>
       </CanvasWrapper>
       <SidebarWrapper>
-        <SideBar/>
+        <SideBar ref={miniMapRef}/>
       </SidebarWrapper>
     </WorkspaceWrapper>
     </>
@@ -114,7 +150,7 @@ export const Workspace = () => {
 
 const WorkspaceWrapper = styled.div`
   display: grid;
-  grid-template-columns: 10rem 1fr 20rem;
+  grid-template-columns: 15rem 1fr 20rem;
   grid-template-areas: "stencil canvas sidebar";
   height:100%;
 `;
